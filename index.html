@@ -128,10 +128,12 @@
   .doljabi .lead{ text-align:center; font-size:13.5px; color:#A9B7B1; margin:-8px 0 22px; line-height:1.9; }
   .namefield{ width:100%; padding:12px 14px; margin-bottom:12px; font-family:inherit; font-size:14px; color:#EDF0EB; background:#2E3E3A; border:1px solid #3B4C47; border-radius:3px; }
   .namefield::placeholder{ color:#7E8F89; }
-  .grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
-  .pick{ position:relative; padding:20px 4px 15px; text-align:center; cursor:pointer; background:#2E3E3A; border:1px solid #3B4C47; border-radius:4px; color:#EDF0EB; font-family:inherit; overflow:hidden; transition:transform .18s ease,background .18s ease,border-color .18s ease; }
-  .pick .ch{ font-family:var(--display); font-size:23px; display:block; }
-  .pick .mean{ font-size:11px; color:#93A39D; letter-spacing:.08em; margin-top:5px; display:block; }
+  .picks{ display:grid; gap:9px; }
+  .pick{ display:flex; align-items:center; gap:18px; width:100%; text-align:left; padding:16px 18px; cursor:pointer;
+         background:#2E3E3A; border:1px solid #3B4C47; border-radius:4px; color:#EDF0EB; font-family:inherit;
+         transition:transform .18s ease,background .18s ease,border-color .18s ease; }
+  .pick .ch{ flex:0 0 auto; font-family:var(--display); font-size:22px; letter-spacing:.16em; }
+  .pick .mean{ font-size:12px; line-height:1.7; color:#93A39D; letter-spacing:.01em; }
   .pick[aria-pressed="true"]{ background:#3F5450; border-color:var(--chija); }
   .pick[aria-pressed="true"] .mean{ color:var(--chija); }
   .pick:active{ transform:scale(.97); }
@@ -291,12 +293,11 @@
 
   <!-- ══ 돌잡이 ══ -->
   <section class="doljabi rise">
-    <p class="eyebrow">Doljabi</p>
-    <h2>지한이는 무엇을 집을까요</h2>
-    <p class="lead">돌잔치 전에 미리 한 표.<br>당일에 맞히신 분께는 작은 선물이 있습니다.</p>
+    <p class="eyebrow">Gachijabi</p>
+    <h2>지한이는 어떤 가치를 집을까요</h2>
+    <p class="lead">지한이가 품고 자라기를 바라는 다섯 가지.<br>당일에 맞히신 분께는 작은 선물이 있습니다.</p>
     <input class="namefield" type="text" id="voterName" placeholder="이름을 적어 주세요" maxlength="12" autocomplete="name">
-    <div class="grid" data-picks></div>
-    <p class="tally" data-tally>이름을 적고 하나만 골라 주세요.</p>
+    <div class="picks" data-picks></div>
   </section>
 
   <!-- ══ 방명록 ══ -->
@@ -345,7 +346,7 @@
   <p class="sub">주소 끝에 #host=열쇠말 을 붙이면 열립니다.</p>
   <p class="sum" data-host-total></p>
   <table><thead><tr><th>이름</th><th>참석</th><th>어른</th><th>아이</th><th>굴비</th><th>갈비</th></tr></thead><tbody data-host-rsvp></tbody></table>
-  <h3>돌잡이 응답</h3>
+  <h3>가치잡이 응답</h3>
   <table><thead><tr><th>이름</th><th>선택</th><th>시각</th></tr></thead><tbody data-host-dol></tbody></table>
   <p class="sum" data-host-dolsum></p>
   <h3>메모</h3>
@@ -643,8 +644,11 @@ $$('[data-sms]').forEach(a => a.href = 'sms:' + digits(CONFIG.tel[a.dataset.sms]
 /* ── 돌잡이 ── */
 (function doljabi(){
   const items = [
-    { ch:'붓', mean:'학문' }, { ch:'실', mean:'장수' }, { ch:'돈', mean:'재물' },
-    { ch:'청진기', mean:'의사' }, { ch:'마이크', mean:'예술' }, { ch:'공', mean:'운동' }
+    { ch:'지혜', mean:'깊고 올바른 생각으로 모든 일에<br>현명하게 대처하는 아이' },
+    { ch:'용기', mean:'어떠한 상황에서도 두려워하지 않고<br>앞으로 나아가는 씩씩한 아이' },
+    { ch:'사랑', mean:'사랑이 가득한 마음으로<br>주변을 따스하게 감싸는 아이' },
+    { ch:'정직', mean:'옳고 그름을 바르게 판단하며<br>늘 소신을 지키는 아이' },
+    { ch:'자유', mean:'넓은 시선으로 자신만의 길을<br>당당하게 개척하는 아이' }
   ];
   const wrap = $('[data-picks]'), tally = $('[data-tally]'), nameEl = $('#voterName');
   let mine = null, busy = false;
@@ -660,7 +664,7 @@ $$('[data-sms]').forEach(a => a.href = 'sms:' + digits(CONFIG.tel[a.dataset.sms]
       [...wrap.children].forEach((x,j) => x.setAttribute('aria-pressed', String(j===i)));
       try{
         await api.send('doljabi', { name:who, item:it.ch });
-        tally.innerHTML = `<b>${it.ch}</b> 에 한 표. ${it.mean}의 길로 자라기를.`;
+        tally.innerHTML = `<b>${it.ch}</b> 에 한 표. 그 마음으로 자라기를.`;
       }catch{ tally.textContent = '보내지 못했어요. 다시 눌러 주세요.'; }
       busy = false;
     });
