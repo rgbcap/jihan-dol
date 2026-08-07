@@ -642,8 +642,8 @@ $$('[data-sms]').forEach(a => a.href = 'sms:' + digits(CONFIG.tel[a.dataset.sms]
   });
 })();
 
-/* ── 돌잡이 ── */
-(function doljabi(){
+/* ── 가치잡이 ── */
+(function gachijabi(){
   const items = [
     { ch:'지혜', mean:'깊고 올바른 생각으로 모든 일에<br>현명하게 대처하는 아이' },
     { ch:'용기', mean:'어떠한 상황에서도 두려워하지 않고<br>앞으로 나아가는 씩씩한 아이' },
@@ -651,34 +651,50 @@ $$('[data-sms]').forEach(a => a.href = 'sms:' + digits(CONFIG.tel[a.dataset.sms]
     { ch:'정직', mean:'옳고 그름을 바르게 판단하며<br>늘 소신을 지키는 아이' },
     { ch:'자유', mean:'넓은 시선으로 자신만의 길을<br>당당하게 개척하는 아이' }
   ];
-  const wrap = $('[data-picks]'), tally = $('[data-tally]'), nameEl = $('#voterName');
-  const sendBtn = $('[data-vote-send]');
-  let mine = null, busy = false;
 
-  items.forEach((it,i) => {
+  const wrap = document.querySelector('[data-picks]');
+  const tally = document.querySelector('[data-tally]');
+  const nameEl = document.querySelector('#voterName');
+  let mine = null;
+
+  wrap.innerHTML = '';
+  items.forEach((it, i) => {
     const b = document.createElement('button');
-    b.type='button'; b.className='pick'; b.setAttribute('aria-pressed','false');
+    b.type = 'button';
+    b.className = 'pick';
+    b.setAttribute('aria-pressed', 'false');
     b.innerHTML = `<span class="ch">${it.ch}</span><span class="mean">${it.mean}</span>`;
     b.addEventListener('click', () => {
       mine = i;
-      [...wrap.children].forEach((x,j) => x.setAttribute('aria-pressed', String(j===i)));
+      [...wrap.children].forEach((x, j) => x.setAttribute('aria-pressed', String(j === i)));
       tally.innerHTML = `<b>${it.ch}</b> — 아래 버튼을 눌러 주세요.`;
     });
     wrap.appendChild(b);
   });
 
+  // 제출 버튼을 코드가 직접 만들어 붙입니다
+  const sendBtn = document.createElement('button');
+  sendBtn.type = 'button';
+  sendBtn.className = 'btn';
+  sendBtn.style.marginTop = '14px';
+  sendBtn.textContent = '이 가치로 투표하기';
+  wrap.insertAdjacentElement('afterend', sendBtn);
+
   sendBtn.addEventListener('click', async () => {
     const who = nameEl.value.trim();
     if (!who){ nameEl.focus(); tally.innerHTML = '<b>이름</b>을 먼저 적어 주세요.'; return; }
     if (mine === null){ tally.textContent = '가치를 하나 골라 주세요.'; return; }
-    if (busy) return; busy = true;
-    sendBtn.disabled = true; tally.textContent = '보내는 중...';
     const it = items[mine];
-    try{
-      await api.send('doljabi', { name:who, item:it.ch });
+    sendBtn.disabled = true;
+    tally.textContent = '보내는 중...';
+    try {
+      await api.send('doljabi', { name: who, item: it.ch });
       tally.innerHTML = `<b>${it.ch}</b> 에 한 표. 그 마음으로 자라기를.`;
-    }catch{ tally.textContent = '보내지 못했어요. 다시 눌러 주세요.'; }
-    sendBtn.disabled = false; busy = false;
+    } catch (e) {
+      tally.textContent = '보내지 못했어요. 다시 눌러 주세요.';
+      console.error(e);
+    }
+    sendBtn.disabled = false;
   });
 })();
 
