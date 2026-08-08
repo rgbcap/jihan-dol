@@ -143,6 +143,8 @@
   .notes{ list-style:none; padding:0; margin:22px 0 0; }
   .notes li{ padding:14px 0; border-top:1px solid var(--line); font-size:14px; }
   .notes .who{ font-family:var(--display); font-size:13px; color:var(--dan); }
+  .notes .del{ margin-left:8px; padding:2px 8px; font-family:inherit; font-size:11px; color:var(--ink-60);
+               background:#fff; border:1px solid var(--line); border-radius:2px; cursor:pointer; vertical-align:1px; }
   .empty{ text-align:center; font-size:13px; color:var(--ink-60); padding:22px 0 0; }
 
   .callrow{ display:flex; gap:8px; margin-bottom:8px; align-items:center; }
@@ -432,6 +434,8 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 const D = new Date(CONFIG.eventAt);
 const DAYS = ['일','월','화','수','목','금','토'];
 const digits = s => s.replace(/[^0-9]/g,'');
+const isHost = location.hash.startsWith('#host') &&
+  (location.hash.split('=')[1] || CONFIG.hostKey) === CONFIG.hostKey;
 
 /* ── 저장소: Apps Script > 브라우저 공용저장소 ── */
 const api = {
@@ -703,28 +707,49 @@ $$('[data-sms]').forEach(a => a.href = 'sms:' + digits(CONFIG.tel[a.dataset.sms]
   const list = $('[data-gb-list]'), empty = $('[data-gb-empty]'), st = $('[data-gb-status]');
   let notes = [];
   try{
-    const d = await api.read(CONFIG.api ? '' : 'local');
+    const d = await api.read(isHost ? CONFIG.hostKey : '');
     notes = (d && d.guestbook) || [];
   }catch{ notes = []; }
+
   function paint(){
     list.innerHTML = notes.slice().reverse().map(n =>
-      `<li><div class="who">${esc(n.name)}</div><div>${esc(n.text)}</div></li>`).join('');
+      `<li><div class="who">${esc(n.name)}` +
+      (isHost && n.id ? ` <button class="del" type="button" data-del="${esc(n.id)}">삭제</button>` : '') +
+      `</div><div>${esc(n.text)}</div></li>`).join('');
     empty.style.display = notes.length ? 'none' : '';
+    if (isHost) list.querySelectorAll('[data-del]').forEach(b =>
+      b.addEventListener('click', () => remove(b.dataset.del)));
   }
+
+  async function remove(id){
+    if (!confirm('이 글을 지울까요?')) return;
+    st.className = 'status'; st.textContent = '지우는 중...';
+    try{
+      if (CONFIG.api){
+        await fetch(CONFIG.api, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body: JSON.stringify({ type:'delete', key: CONFIG.hostKey, id }) });
+      }
+      notes = notes.filter(n => String(n.id) !== String(id));
+      paint(); st.textContent = '지웠습니다.';
+    }catch{ st.className='status err'; st.textContent='지우지 못했어요.'; }
+  }
+
   paint();
+
   $('[data-gb-send]').addEventListener('click', async () => {
     const name = $('#gbName').value.trim() || '익명';
     const text = $('#gbText').value.trim();
     if (!text){ $('#gbText').focus(); return; }
+    const id = String(Date.now()) + Math.floor(Math.random()*1000);
     st.className='status'; st.textContent='보내는 중...';
     try{
-      await api.send('guestbook', { name, text });
-      notes.push({ name, text }); $('#gbText').value=''; paint();
+      await api.send('guestbook', { name, text, id });
+      notes.push({ name, text, id }); $('#gbText').value=''; paint();
       st.textContent = '고맙습니다. 잘 전할게요.';
     }catch{ st.className='status err'; st.textContent='보내지 못했어요.'; }
   });
 })();
-
+  
 /* ── 주최자 확인 (#host=열쇠말) ── */
 (function host(){
   const panel = $('[data-host]');
