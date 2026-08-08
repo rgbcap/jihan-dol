@@ -254,7 +254,7 @@
     <p class="eyebrow">RSVP</p>
     <h2>참석 회신과 식사</h2>
     <p class="deadline" data-deadline></p>
-    <p class="note" style="margin-bottom:24px;">식당에 미리 상을 차려 두어야 해서<br>드실 메뉴를 함께 알려 주시면 큰 도움이 됩니다.</p>
+    <p class="note" style="margin-bottom:24px;">식당에 미리 상을 차려 두어야 해서<br>드실 메뉴를 함께 알려 주시면 큰 도움이 됩니다.<br>아이들끼리 나눠 드실 거라면 그만큼 골라 주세요.</p>
 
     <div class="field">
       <label for="rName">가족 대표자 이름</label>
@@ -279,7 +279,7 @@
       </div>
 
       <div class="field">
-        <label>식사 (어른 인원수만큼 골라 주세요)</label>
+        <label>식사 (어른 인원수만큼, 아이 몫이 필요하면 더 골라 주세요)</label>
         <div data-menu></div>
       </div>
     </div>
@@ -646,7 +646,14 @@ $$('[data-sms]').forEach(a => a.href = 'sms:' + digits(CONFIG.tel[a.dataset.sms]
     if (attend === '참석'){
       if (counts.adult + counts.child === 0){ st.className='status err'; st.textContent='오시는 인원을 알려 주세요.'; return; }
       const total = CONFIG.menu.reduce((a,m) => a + menu[m.key], 0);
-      if (total !== counts.adult){ st.className='status err'; st.textContent=`식사는 어른 ${counts.adult}분에 맞춰 골라 주세요.`; return; }
+      if (total < counts.adult){
+        st.className='status err';
+        st.textContent=`어른 ${counts.adult}분이니 식사는 ${counts.adult}인분 이상 골라 주세요.`; return;
+      }
+      if (total > counts.adult + counts.child){
+        st.className='status err';
+        st.textContent=`오시는 분보다 식사가 많습니다. 다시 확인해 주세요.`; return;
+      }
     }
     btn.disabled = true; st.textContent = '보내는 중...';
     try{
