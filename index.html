@@ -499,7 +499,7 @@ const local = {
 
 /* ── 기본 정보 ── */
 $('[data-when]').innerHTML =
-  `${D.getFullYear()}. ${D.getMonth()+1}. ${D.getDate()} <small>${DAYS[D.getDay()]}요일 ${D.getHours()<12?'오전':'낮'} ${D.getHours()%12||12}시</small>`;
+  `${D.getFullYear()}. ${D.getMonth()+1}. ${D.getDate()} <small>${DAYS[D.getDay()]}요일 ${D.getHours()<12?'오전':'낮'} ${D.getHours()%12||12}시${D.getMinutes()?' '+D.getMinutes()+'분':''}</small>`;
 $('[data-where]').textContent = `${CONFIG.venue.name} ${CONFIG.venue.room}`;
 $('[data-birth]').textContent = CONFIG.birth;
 $('[data-birth-short]').textContent = CONFIG.birth.replace(/^\d+년\s*/,'');
